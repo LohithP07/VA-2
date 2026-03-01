@@ -38,9 +38,9 @@ if "%choice%"=="2" goto streamlit
 if "%choice%"=="3" goto both
 
 :html_frontend
-echo [2/2] Opening HTML Frontend...
+echo [2/2] Opening HTML Frontend via browser (served by FastAPI)...
 timeout /t 2 /nobreak >nul
-start "" "frontend\index.html"
+start "" "http://127.0.0.1:8000/"
 goto done
 
 :streamlit
@@ -53,8 +53,8 @@ goto done
 echo [2/3] Starting Streamlit Dashboard...
 start "Veracity - Dashboard" cmd /k "title Veracity Dashboard && color 05 && call venv\Scripts\activate.bat && streamlit run dashboard/app.py"
 timeout /t 2 /nobreak >nul
-echo [3/3] Opening HTML Frontend...
-start "" "frontend\index.html"
+echo [3/3] Opening HTML Frontend via browser (served by FastAPI)...
+start "" "http://127.0.0.1:8000/"
 goto done
 
 :done

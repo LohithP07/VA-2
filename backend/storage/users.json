@@ -1,0 +1,18 @@
+{
+    "users": [
+        {
+            "id": "1334e7ab-7f34-47cb-9c62-3604c4052dbb",
+            "username": "testuser2",
+            "email": "test2@test.com",
+            "hashed_password": "$2b$12$pgAuzYolpRV5jK.U7Vk8yedFptPOK.iKHSVVoIavN8lSMfPC16IJK",
+            "created_at": 1772377431.0704823
+        },
+        {
+            "id": "08cab031-64fd-4412-8390-d2cfa6376839",
+            "username": "demouser2",
+            "email": "demo2@veracity.com",
+            "hashed_password": "$2b$12$AkFVwmGjJ0zKDPaKv.VY/eu53n3iQuKh2rq0CGFWSwqMNgvh9LcbS",
+            "created_at": 1772377556.2853377
+        }
+    ]
+}

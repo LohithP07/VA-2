@@ -1,5 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import List, Optional
 from pydantic import BaseModel
@@ -39,6 +41,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Serve Frontend (fixes null-origin CORS when opening HTML as file://)
+# ──────────────────────────────────────────────────────────────────────────────
+_FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/frontend/index.html")
+
+@app.get("/login", include_in_schema=False)
+def go_login():
+    return RedirectResponse(url="/frontend/login.html")
+
+@app.get("/register", include_in_schema=False)
+def go_register():
+    return RedirectResponse(url="/frontend/register.html")
+
+@app.get("/dashboard", include_in_schema=False)
+def go_dashboard():
+    return RedirectResponse(url="/frontend/dashboard.html")
+
+app.mount("/frontend", StaticFiles(directory=_FRONTEND_DIR, html=True), name="frontend")
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Paths

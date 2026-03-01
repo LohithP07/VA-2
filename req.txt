@@ -2,6 +2,11 @@
 fastapi
 uvicorn
 python-multipart
+pydantic
+
+# ── Authentication & Security ─────────────────────────────────────────────────
+python-jose[cryptography]
+passlib[bcrypt]
 cryptography
 
 # ── Frontend (Streamlit Dashboard) ───────────────────────────────────────────
@@ -13,6 +18,7 @@ Pillow
 pandas
 numpy
 scikit-learn
+scipy
 
 # ── Spreadsheet Parsing ───────────────────────────────────────────────────────
 openpyxl
