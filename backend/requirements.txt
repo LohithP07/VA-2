@@ -1,9 +1,15 @@
 fastapi
 uvicorn
 python-multipart
-streamlit
 cryptography
 openpyxl
 pandas
+scikit-learn
+numpy
+python-jose[cryptography]
+passlib[bcrypt]
+
+# Legacy Streamlit dashboard (optional)
+streamlit
 Pillow
 requests

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard – Veracity Agent</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+    <link rel="stylesheet" href="src/style.css" />
+</head>
+
+<body>
+
+    <div class="dash-layout">
+
+        <!-- ── Sidebar ─────────────────────────────────────────────── -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <span class="logo">🛡️</span>
+                <div>
+                    <div class="name">Veracity Agent</div>
+                    <div class="version">v2.0 · RSA-PSS-SHA256</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Documents</div>
+                <div class="nav-item active" data-tab="register">
+                    <span class="nav-icon">✍️</span> Register
+                </div>
+                <div class="nav-item" data-tab="verify">
+                    <span class="nav-icon">🔍</span> Verify
+                </div>
+                <div class="nav-item" data-tab="batch">
+                    <span class="nav-icon">📦</span> Batch Operations
+                </div>
+
+                <div class="nav-section-title" style="margin-top:.5rem;">Records</div>
+                <div class="nav-item" data-tab="ledger">
+                    <span class="nav-icon">📘</span> My Ledger
+                </div>
+                <div class="nav-item" data-tab="blockchain">
+                    <span class="nav-icon">⛓️</span> Blockchain
+                </div>
+
+                <div class="nav-section-title" style="margin-top:.5rem;">System</div>
+                <div class="nav-item" data-tab="analytics">
+                    <span class="nav-icon">📊</span> Analytics
+                </div>
+                <div class="nav-item" data-tab="anomaly">
+                    <span class="nav-icon">🧠</span> AI Anomaly
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info" id="user-info-box">
+                    <div class="user-avatar" id="user-avatar">?</div>
+                    <div>
+                        <div class="user-name" id="sidebar-username">Loading…</div>
+                        <div class="user-email" id="sidebar-email"></div>
+                    </div>
+                </div>
+                <div id="backend-status" class="status-online" style="margin-bottom:.5rem;font-size:.75rem;">
+                    <span class="dot"></span> Checking backend…
+                </div>
+                <button class="btn btn-ghost btn-sm w-full" id="logout-btn">🚪 Sign Out</button>
+                <a href="index.html"
+                    style="display:block;text-align:center;font-size:.75rem;color:rgba(255,255,255,.3);margin-top:.6rem;">←
+                    Back to home</a>
+            </div>
+        </aside>
+
+        <!-- ── Main panel ──────────────────────────────────────────── -->
+        <main class="main-panel">
+            <div class="main-topbar">
+                <div>
+                    <div class="topbar-title" id="topbar-title">Register Document</div>
+                    <div class="topbar-subtitle" id="topbar-subtitle">Upload &amp; cryptographically sign your documents
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:1rem;">
+                    <span id="topbar-user" style="font-size:.82rem;color:var(--gray-500);"></span>
+                </div>
+            </div>
+
+            <div class="main-content">
+
+                <!-- ══ TAB: REGISTER ══════════════════════════════════════ -->
+                <div id="tab-register" class="tab-content">
+                    <div class="section-header">
+                        <h3>✍️ Register &amp; Sign a Document</h3>
+                        <p>Upload a file, choose the issuer that will sign it, and anchor it to the blockchain.</p>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+                        <!-- Drop zone -->
+                        <div>
+                            <div class="drop-zone" id="reg-drop-zone">
+                                <div class="drop-zone-icon">📁</div>
+                                <p class="drop-zone-text">Drop file here or click to browse</p>
+                                <p class="drop-zone-sub">PDF, Images, Excel, Word, Video, and more</p>
+                                <input type="file" id="reg-file-input" style="display:none;" />
+                            </div>
+                            <div id="reg-file-info" style="display:none;margin-top:1rem;" class="card-flat">
+                                <div style="display:flex;align-items:center;gap:.8rem;">
+                                    <span id="reg-file-icon" style="font-size:2rem;"></span>
+                                    <div>
+                                        <div style="font-weight:600;font-size:.95rem;" id="reg-file-name"></div>
+                                        <div style="font-size:.8rem;color:var(--gray-500);" id="reg-file-size"></div>
+                                    </div>
+                                    <button class="btn btn-ghost btn-sm" id="reg-clear-btn" style="margin-left:auto;">✕
+                                        Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Issuer select -->
+                        <div class="card" style="padding:1.4rem;">
+                            <h4 style="margin-bottom:1rem;color:var(--blue-800);">🏛️ Signing Issuer</h4>
+                            <div class="input-group">
+                                <label for="reg-issuer">Select issuer</label>
+                                <select id="reg-issuer">
+                                    <option value="did:veracity:mlritm">MLRITM — MLR Institute</option>
+                                    <option value="did:veracity:external">External CA</option>
+                                    <option value="did:veracity:govt">Govt Registry</option>
+                                </select>
+                            </div>
+                            <div id="issuer-desc"
+                                style="font-size:.8rem;color:var(--gray-500);line-height:1.5;margin-top:.5rem;"></div>
+                        </div>
+                    </div>
+
+                    <div id="reg-alert"></div>
+                    <div id="copy-alert-box"></div>
+
+                    <button class="btn btn-primary" id="reg-submit-btn" disabled>
+                        🔐 Register &amp; Sign
+                    </button>
+
+                    <div id="reg-result" style="margin-top:1.5rem;display:none;">
+                        <div class="card" style="border-left:4px solid var(--success);">
+                            <h4 style="color:var(--success);margin-bottom:1rem;">✅ Document Registered Successfully</h4>
+                            <div class="metric-grid" id="reg-metrics"></div>
+                            <details style="margin-top:1rem;">
+                                <summary style="cursor:pointer;font-size:.85rem;color:var(--gray-600);font-weight:600;">
+                                    📄 Full registration record</summary>
+                                <pre id="reg-json"
+                                    style="margin-top:.8rem;background:var(--gray-900);color:#a5f3fc;border-radius:8px;padding:1rem;font-size:.75rem;overflow-x:auto;"></pre>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ TAB: VERIFY ════════════════════════════════════════ -->
+                <div id="tab-verify" class="tab-content" style="display:none;">
+                    <div class="section-header">
+                        <h3>🔍 Verify a Document</h3>
+                        <p>Upload any file to check its integrity, authenticity, and provenance against your ledger.</p>
+                    </div>
+
+                    <div class="drop-zone" id="ver-drop-zone">
+                        <div class="drop-zone-icon">🔍</div>
+                        <p class="drop-zone-text">Drop file to verify or click to browse</p>
+                        <p class="drop-zone-sub">Checks hash, signature, and blockchain record</p>
+                        <input type="file" id="ver-file-input" style="display:none;" />
+                    </div>
+
+                    <div id="ver-file-info" style="display:none;margin-top:1rem;margin-bottom:1rem;" class="card-flat">
+                        <div style="display:flex;align-items:center;gap:.8rem;">
+                            <span id="ver-file-icon" style="font-size:2rem;"></span>
+                            <div>
+                                <div style="font-weight:600;" id="ver-file-name"></div>
+                                <div style="font-size:.8rem;color:var(--gray-500);" id="ver-file-size"></div>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" id="ver-clear-btn" style="margin-left:auto;">✕
+                                Clear</button>
+                        </div>
+                    </div>
+
+                    <div id="ver-alert"></div>
+
+                    <button class="btn btn-primary" id="ver-submit-btn" disabled>
+                        🔍 Verify Document
+                    </button>
+
+                    <div id="ver-result" style="margin-top:1.5rem;display:none;"></div>
+                </div>
+
+                <!-- ══ TAB: BATCH ═════════════════════════════════════════ -->
+                <div id="tab-batch" class="tab-content" style="display:none;">
+                    <div class="section-header">
+                        <h3>📦 Batch Operations</h3>
+                        <p>Upload multiple files at once to register or verify them all in a single operation.</p>
+                    </div>
+
+                    <div class="tab-bar">
+                        <button class="tab-btn active" id="batch-reg-btn">✍️ Register Batch</button>
+                        <button class="tab-btn" id="batch-ver-btn">🔍 Verify Batch</button>
+                    </div>
+
+                    <!-- Batch Register -->
+                    <div id="batch-reg-panel">
+                        <div class="drop-zone" id="breg-drop-zone">
+                            <div class="drop-zone-icon">📁</div>
+                            <p class="drop-zone-text">Drop multiple files or click to browse</p>
+                            <p class="drop-zone-sub">All files will be signed by the selected issuer</p>
+                            <input type="file" id="breg-file-input" multiple style="display:none;" />
+                        </div>
+                        <div id="breg-filelist" style="margin-top:1rem;display:none;"></div>
+                        <div style="display:flex;align-items:center;gap:1rem;margin-top:1rem;">
+                            <div class="input-group" style="margin:0;flex:1;">
+                                <label for="breg-issuer">Signing Issuer</label>
+                                <select id="breg-issuer">
+                                    <option value="did:veracity:mlritm">MLRITM</option>
+                                    <option value="did:veracity:external">External CA</option>
+                                    <option value="did:veracity:govt">Govt Registry</option>
+                                </select>
+                            </div>
+                            <div style="padding-top:1.5rem;">
+                                <button class="btn btn-primary" id="breg-submit-btn" disabled>🔐 Register All</button>
+                            </div>
+                        </div>
+                        <div id="breg-alert" style="margin-top:1rem;"></div>
+                        <div id="breg-result" style="margin-top:1.5rem;display:none;"></div>
+                    </div>
+
+                    <!-- Batch Verify -->
+                    <div id="batch-ver-panel" style="display:none;">
+                        <div class="drop-zone" id="bver-drop-zone">
+                            <div class="drop-zone-icon">🔍</div>
+                            <p class="drop-zone-text">Drop multiple files to verify</p>
+                            <p class="drop-zone-sub">Each file is checked against your private ledger</p>
+                            <input type="file" id="bver-file-input" multiple style="display:none;" />
+                        </div>
+                        <div id="bver-filelist" style="margin-top:1rem;display:none;"></div>
+                        <div style="margin-top:1rem;">
+                            <button class="btn btn-primary" id="bver-submit-btn" disabled>🔍 Verify All</button>
+                        </div>
+                        <div id="bver-alert" style="margin-top:1rem;"></div>
+                        <div id="bver-result" style="margin-top:1.5rem;display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- ══ TAB: LEDGER ════════════════════════════════════════ -->
+                <div id="tab-ledger" class="tab-content" style="display:none;">
+                    <div class="section-header">
+                        <h3>📘 My Private Ledger</h3>
+                        <p>All documents you have registered — your data, visible only to you.</p>
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" id="ledger-load-btn">🔄 Load Records</button>
+                        <input type="text" id="ledger-search" placeholder="🔎 Filter by filename, issuer, type…"
+                            style="flex:1;min-width:200px;padding:.5rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;outline:none;" />
+                    </div>
+
+                    <div id="ledger-alert"></div>
+                    <div id="ledger-table" style="display:none;">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>File</th>
+                                        <th>Type</th>
+                                        <th>Issuer</th>
+                                        <th>Status</th>
+                                        <th>Hash (SHA-256)</th>
+                                        <th>Issued At</th>
+                                        <th>Size</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ledger-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top:.6rem;font-size:.8rem;color:var(--gray-500);" id="ledger-count"></div>
+                    </div>
+                    <div id="ledger-empty" style="display:none;" class="card-flat" style="text-align:center;">
+                        <div style="font-size:3rem;margin-bottom:.8rem;">📭</div>
+                        <p style="font-weight:600;color:var(--blue-800);">No documents yet</p>
+                        <p style="font-size:.85rem;">Go to the Register tab to upload your first document.</p>
+                    </div>
+
+                    <hr class="divider" />
+                    <div
+                        style="border:1px solid #fca5a5;border-radius:var(--radius);padding:1.2rem;background:#fef2f2;">
+                        <div style="font-weight:700;color:#991b1b;margin-bottom:.8rem;">⚠️ Danger Zone</div>
+                        <label
+                            style="display:flex;align-items:center;gap:.6rem;font-size:.85rem;cursor:pointer;margin-bottom:.8rem;">
+                            <input type="checkbox" id="confirm-clear" />
+                            I understand this will permanently delete <strong>all my ledger records</strong>
+                        </label>
+                        <button class="btn btn-danger btn-sm" id="clear-ledger-btn" disabled>🗑️ Clear My
+                            Ledger</button>
+                    </div>
+                </div>
+
+                <!-- ══ TAB: BLOCKCHAIN ════════════════════════════════════ -->
+                <div id="tab-blockchain" class="tab-content" style="display:none;">
+                    <div class="section-header">
+                        <h3>⛓️ Blockchain Explorer</h3>
+                        <p>Immutable proof-of-existence. Every registered document leaves a permanent block.</p>
+                    </div>
+
+                    <div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" id="chain-check-btn">⛓️ Verify Chain Integrity</button>
+                        <button class="btn btn-ghost btn-sm" id="chain-load-btn">📜 Load All Blocks</button>
+                    </div>
+
+                    <div id="chain-status" style="margin-bottom:1.2rem;"></div>
+                    <div id="chain-stats" class="metric-grid" style="display:none;margin-bottom:1.5rem;"></div>
+                    <div id="chain-blocks"></div>
+                </div>
+
+                <!-- ══ TAB: ANALYTICS ═════════════════════════════════════ -->
+                <div id="tab-analytics" class="tab-content" style="display:none;">
+                    <div class="section-header">
+                        <h3>📊 Activity &amp; Analytics</h3>
+                        <p>Your session activity log and verification latency metrics.</p>
+                    </div>
+
+                    <div class="metric-grid" id="analytics-metrics" style="margin-bottom:2rem;"></div>
+
+                    <h4 style="margin-bottom:.8rem;color:var(--blue-800);">📋 Session Activity Log</h4>
+                    <div id="activity-log-empty" class="card-flat" style="text-align:center;padding:2rem;">
+                        <div style="font-size:2.5rem;margin-bottom:.8rem;">📋</div>
+                        <p style="font-weight:600;">No activity yet this session</p>
+                        <p style="font-size:.82rem;">Register or verify documents to see your activity log.</p>
+                    </div>
+                    <div id="activity-table" style="display:none;">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Operation</th>
+                                        <th>File</th>
+                                        <th>Result</th>
+                                        <th>Latency</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activity-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ TAB: ANOMALY ═══════════════════════════════════════ -->
+                <div id="tab-anomaly" class="tab-content" style="display:none;">
+                    <div class="section-header">
+                        <h3>🧠 AI Anomaly Detection</h3>
+                        <p>Isolation Forest ML model monitors event patterns and triggers autonomous credential
+                            revocation on suspicious activity.</p>
+                    </div>
+
+                    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+                        <button class="btn btn-primary btn-sm" id="anomaly-check-btn">🔎 Run Anomaly Check</button>
+                        <button class="btn btn-danger btn-sm" id="agent-respond-btn">🤖 Trigger Autonomous
+                            Response</button>
+                    </div>
+
+                    <div id="anomaly-result"></div>
+
+                    <div class="card" style="margin-top:1.5rem;border-left:4px solid var(--blue-400);">
+                        <h4 style="margin-bottom:.8rem;">How it works</h4>
+                        <p style="font-size:.88rem;line-height:1.8;">
+                            The anomaly detection module uses <strong>scikit-learn's Isolation Forest</strong> to
+                            analyze upload and verification event patterns.
+                            Features analyzed include request count and event type encoding.
+                        </p>
+                        <p style="font-size:.88rem;line-height:1.8;margin-top:.6rem;">
+                            If the latest event is flagged as an outlier (<code>prediction == -1</code>), the autonomous
+                            agent can automatically revoke credentials for all unrevoked ledger records — protecting
+                            against compromised or unusual activity.
+                        </p>
+                    </div>
+                </div>
+
+            </div><!-- end main-content -->
+        </main>
+    </div><!-- end dash-layout -->
+
+    <script type="module">
+        const API = 'http://127.0.0.1:8000';
+
+        /* ── Auth guard ────────────────────────────────────────────── */
+        const token = localStorage.getItem('va_token');
+        const userRaw = localStorage.getItem('va_user');
+        if (!token || !userRaw) {
+            window.location.href = 'login.html';
+        }
+        const user = JSON.parse(userRaw || '{}');
+
+        /* ── Populate user info ─────────────────────────────────────── */
+        document.getElementById('sidebar-username').textContent = user.username || 'User';
+        document.getElementById('sidebar-email').textContent = user.email || '';
+        document.getElementById('user-avatar').textContent = (user.username || 'U')[0].toUpperCase();
+        document.getElementById('topbar-user').textContent = `Signed in as ${user.username}`;
+
+        /* ── Helpers ────────────────────────────────────────────────── */
+        const headers = () => ({ 'Authorization': `Bearer ${token}` });
+
+        async function apiFetch(method, path, body, isForm = false) {
+            const opts = { method, headers: headers() };
+            if (body) opts.body = body;
+            if (!isForm) opts.headers['Content-Type'] = 'application/json';
+            try {
+                const res = await fetch(`${API}${path}`, opts);
+                return { res, data: await res.json() };
+            } catch (e) {
+                return { res: null, data: null, error: e.message };
+            }
+        }
+
+        function fmtSize(b) {
+            if (!b) return '–';
+            if (b < 1024) return `${b} B`;
+            if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+            return `${(b / 1024 / 1024).toFixed(2)} MB`;
+        }
+        function fmtTs(ts) {
+            if (!ts) return '–';
+            return new Date(ts * 1000).toLocaleString();
+        }
+        function fileIcon(cat) {
+            const m = { image: '🖼️', video: '🎬', document: '📄', spreadsheet: '📊', presentation: '📑' };
+            return m[cat] || '📁';
+        }
+        function statusBadge(s = '') {
+            const u = s.toUpperCase();
+            if (u.includes('VERIFIED')) return `<span class="badge badge-verified">✅ VERIFIED</span>`;
+            if (u.includes('REVOKED')) return `<span class="badge badge-revoked">🔒 REVOKED</span>`;
+            if (u.includes('REJECTED')) return `<span class="badge badge-rejected">❌ REJECTED</span>`;
+            if (u.includes('TAMPERED') || u.includes('UNKNOWN')) return `<span class="badge badge-tampered">⚠️ TAMPERED</span>`;
+            if (u.includes('REGISTERED')) return `<span class="badge badge-verified">✅ REGISTERED</span>`;
+            if (u.includes('DUPLICATE')) return `<span class="badge badge-duplicate">♻️ DUPLICATE</span>`;
+            if (u.includes('FAILED') || u.includes('ERROR')) return `<span class="badge badge-rejected">❌ ${s}</span>`;
+            return `<span class="badge badge-blue">${s}</span>`;
+        }
+        function alert(el, msg, type = 'error', icon = true) {
+            const icons = { error: '❌', success: '✅', info: 'ℹ️', warning: '⚠️' };
+            document.getElementById(el).innerHTML = msg
+                ? `<div class="alert alert-${type}">${icon ? icons[type] + ' ' : ''}${msg}</div>`
+                : '';
+        }
+
+        /* ── Backend ping ──────────────────────────────────────────── */
+        const statusEl = document.getElementById('backend-status');
+        (async () => {
+            try {
+                const r = await fetch(`${API}/issuers`);
+                if (r.ok) {
+                    statusEl.innerHTML = '<span class="dot" style="background:#10b981;"></span> <span style="color:#10b981;">Backend Online</span>';
+                    const d = await r.json();
+                    const issuerMap = {};
+                    d.issuers.forEach(i => { issuerMap[i.did] = `${i.short} — ${i.name}`; });
+                    ['reg-issuer', 'breg-issuer'].forEach(id => {
+                        const sel = document.getElementById(id);
+                        if (!sel) return;
+                        sel.innerHTML = '';
+                        d.issuers.forEach(i => {
+                            const opt = document.createElement('option');
+                            opt.value = i.did; opt.textContent = `${i.short} — ${i.name}`;
+                            sel.appendChild(opt);
+                        });
+                    });
+                } else { statusEl.innerHTML = '<span class="dot" style="background:#ef4444;"></span> <span style="color:#ef4444;">Backend Offline</span>'; }
+            } catch {
+                statusEl.innerHTML = '<span class="dot" style="background:#ef4444;"></span> <span style="color:#ef4444;">Backend Offline</span>';
+            }
+        })();
+
+        /* ── Tab switching ─────────────────────────────────────────── */
+        const TAB_META = {
+            register: { title: 'Register Document', sub: 'Upload & cryptographically sign your documents' },
+            verify: { title: 'Verify Document', sub: 'Check integrity and authenticity of any file' },
+            batch: { title: 'Batch Operations', sub: 'Register or verify multiple files at once' },
+            ledger: { title: 'My Private Ledger', sub: 'All your registered documents — only visible to you' },
+            blockchain: { title: 'Blockchain Explorer', sub: 'Immutable proof-of-existence for every document' },
+            analytics: { title: 'Analytics', sub: 'Session activity log and performance metrics' },
+            anomaly: { title: 'AI Anomaly Detection', sub: 'Isolation Forest ML model monitors suspicious activity' },
+        };
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const panel = document.getElementById(`tab-${name}`);
+            if (panel) panel.style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(el => {
+                if (el.dataset.tab === name) el.classList.add('active');
+            });
+            const meta = TAB_META[name] || {};
+            document.getElementById('topbar-title').textContent = meta.title || name;
+            document.getElementById('topbar-subtitle').textContent = meta.sub || '';
+            if (name === 'analytics') renderAnalytics();
+        }
+
+        document.querySelectorAll('.nav-item[data-tab]').forEach(el => {
+            el.addEventListener('click', () => switchTab(el.dataset.tab));
+        });
+
+        /* ── Logout ────────────────────────────────────────────────── */
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('va_token');
+            localStorage.removeItem('va_user');
+            window.location.href = 'login.html';
+        });
+
+        /* ── Drop zone helper ──────────────────────────────────────── */
+        function setupDropZone(zoneId, inputId, onFile) {
+            const zone = document.getElementById(zoneId);
+            const input = document.getElementById(inputId);
+            zone.addEventListener('click', () => input.click());
+            input.addEventListener('change', () => { if (input.files.length) onFile(input.files); });
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragging'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragging'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault(); zone.classList.remove('dragging');
+                if (e.dataTransfer.files.length) onFile(e.dataTransfer.files);
+            });
+        }
+
+        /* ── Activity log ──────────────────────────────────────────── */
+        const activityLog = [];
+        function logActivity(op, file, result, latency) {
+            activityLog.unshift({ time: new Date().toLocaleTimeString(), op, file, result, latency });
+        }
+
+        /* ── Issuer desc ───────────────────────────────────────────── */
+        const ISSUER_DESCS = {
+            'did:veracity:mlritm': 'MLR Institute of Technology and Management — academic DID issuer',
+            'did:veracity:external': 'External Certification Authority — third-party verifier',
+            'did:veracity:govt': 'Government Digital Registry — official government issuer',
+        };
+        document.getElementById('reg-issuer').addEventListener('change', function () {
+            document.getElementById('issuer-desc').textContent = ISSUER_DESCS[this.value] || '';
+        });
+        document.getElementById('reg-issuer').dispatchEvent(new Event('change'));
+
+        /* ══════════════════════════════════════════════════════════════
+           REGISTER TAB
+        ══════════════════════════════════════════════════════════════ */
+        let regFile = null;
+
+        setupDropZone('reg-drop-zone', 'reg-file-input', files => setRegFile(files[0]));
+
+        function setRegFile(f) {
+            regFile = f;
+            document.getElementById('reg-drop-zone').style.display = 'none';
+            const fi = document.getElementById('reg-file-info');
+            fi.style.display = 'block';
+            document.getElementById('reg-file-name').textContent = f.name;
+            document.getElementById('reg-file-size').textContent = fmtSize(f.size);
+            const ext = f.name.split('.').pop().toLowerCase();
+            const iconMap = { pdf: '📄', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', mp4: '🎬', mov: '🎬', avi: '🎬', xlsx: '📊', xls: '📊', csv: '📊', pptx: '📑', doc: '📝', docx: '📝' };
+            document.getElementById('reg-file-icon').textContent = iconMap[ext] || '📁';
+            document.getElementById('reg-submit-btn').disabled = false;
+            document.getElementById('reg-result').style.display = 'none';
+            document.getElementById('reg-alert').innerHTML = '';
+        }
+
+        document.getElementById('reg-clear-btn').addEventListener('click', () => {
+            regFile = null;
+            document.getElementById('reg-file-info').style.display = 'none';
+            document.getElementById('reg-drop-zone').style.display = '';
+            document.getElementById('reg-submit-btn').disabled = true;
+            document.getElementById('reg-file-input').value = '';
+        });
+
+        document.getElementById('reg-submit-btn').addEventListener('click', async () => {
+            if (!regFile) return;
+            const btn = document.getElementById('reg-submit-btn');
+            btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Signing…';
+
+            const form = new FormData();
+            form.append('file', regFile);
+            form.append('issuer_did', document.getElementById('reg-issuer').value);
+
+            try {
+                const res = await fetch(`${API}/upload`, { method: 'POST', headers: headers(), body: form });
+                const data = await res.json();
+                btn.disabled = false; btn.innerHTML = '🔐 Register &amp; Sign';
+
+                if (!res.ok) {
+                    alert('reg-alert', data.detail || 'Registration failed', 'error');
+                    return;
+                }
+
+                // Copy detection alert
+                const copyBox = document.getElementById('copy-alert-box');
+                if (data.copy_detected) {
+                    copyBox.innerHTML = `
+          <div class="copy-alert">
+            <span class="copy-icon">📋</span>
+            <div>
+              <div class="copy-alert-title">Copy Detected</div>
+              <div class="copy-alert-body">This file's hash was previously registered by <strong>${data.copy_of_user}</strong>. Both registrations are valid, but the original uploader is noted.</div>
+            </div>
+          </div>`;
+                } else { copyBox.innerHTML = ''; }
+
+                // Metrics
+                const metrics = document.getElementById('reg-metrics');
+                metrics.innerHTML = `
+        <div class="metric-card"><div class="metric-value">${fileIcon(data.file_type)} ${data.file_type || '–'}</div><div class="metric-label">File Type</div></div>
+        <div class="metric-card"><div class="metric-value">#${data.block_index ?? '–'}</div><div class="metric-label">Block Index</div></div>
+        <div class="metric-card"><div class="metric-value">${data.upload_latency_ms ?? '–'}ms</div><div class="metric-label">Latency</div></div>
+        <div class="metric-card"><div class="metric-value">${fmtSize(data.size_bytes)}</div><div class="metric-label">File Size</div></div>
+      `;
+                document.getElementById('reg-json').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('reg-result').style.display = 'block';
+                alert('reg-alert', '', 'success');
+
+                logActivity('Register', regFile.name, 'REGISTERED', data.upload_latency_ms);
+            } catch {
+                btn.disabled = false; btn.innerHTML = '🔐 Register &amp; Sign';
+                alert('reg-alert', 'Backend unreachable.', 'error');
+            }
+        });
+
+        /* ══════════════════════════════════════════════════════════════
+           VERIFY TAB
+        ══════════════════════════════════════════════════════════════ */
+        let verFile = null;
+
+        setupDropZone('ver-drop-zone', 'ver-file-input', files => setVerFile(files[0]));
+
+        function setVerFile(f) {
+            verFile = f;
+            document.getElementById('ver-drop-zone').style.display = 'none';
+            const fi = document.getElementById('ver-file-info');
+            fi.style.display = 'block';
+            document.getElementById('ver-file-name').textContent = f.name;
+            document.getElementById('ver-file-size').textContent = fmtSize(f.size);
+            const ext = f.name.split('.').pop().toLowerCase();
+            const iconMap = { pdf: '📄', jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', mp4: '🎬', xlsx: '📊', csv: '📊', doc: '📝', docx: '📝' };
+            document.getElementById('ver-file-icon').textContent = iconMap[ext] || '📁';
+            document.getElementById('ver-submit-btn').disabled = false;
+            document.getElementById('ver-result').style.display = 'none';
+            document.getElementById('ver-alert').innerHTML = '';
+        }
+
+        document.getElementById('ver-clear-btn').addEventListener('click', () => {
+            verFile = null;
+            document.getElementById('ver-file-info').style.display = 'none';
+            document.getElementById('ver-drop-zone').style.display = '';
+            document.getElementById('ver-submit-btn').disabled = true;
+            document.getElementById('ver-file-input').value = '';
+        });
+
+        function renderVerifyResult(data) {
+            const statusColors = { VERIFIED: 'success', REVOKED: 'warning', REJECTED: 'error', 'TAMPERED OR UNKNOWN': 'error' };
+            const type = Object.keys(statusColors).find(k => data.status?.includes(k)) || 'error';
+            return `
+      <div class="card" style="border-left:4px solid var(--${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'});">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+          ${statusBadge(data.status)}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;font-size:.85rem;">
+          ${data.issuer_name ? `<div><div style="font-weight:600;color:var(--blue-800)">Issuer</div>${data.issuer_name}</div>` : ''}
+          ${data.issuer ? `<div><div style="font-weight:600;color:var(--blue-800)">DID</div><code style="font-size:.75rem;color:var(--blue-500)">${data.issuer}</code></div>` : ''}
+          ${data.latency_ms != null ? `<div><div style="font-weight:600;color:var(--blue-800)">Latency</div>${data.latency_ms}ms</div>` : ''}
+          ${data.file_type ? `<div><div style="font-weight:600;color:var(--blue-800)">File Type</div>${fileIcon(data.file_type)} ${data.file_type}</div>` : ''}
+          ${data.issued_at ? `<div><div style="font-weight:600;color:var(--blue-800)">Issued At</div>${fmtTs(data.issued_at)}</div>` : ''}
+        </div>
+        ${data.integrity ? `<div class="alert alert-success" style="margin-top:1rem;">🔐 Integrity: <strong>${data.integrity}</strong> | Authenticity: <strong>${data.authenticity}</strong> | Provenance: <strong>${data.provenance}</strong></div>` : ''}
+        ${data.reason ? `<div class="alert alert-error" style="margin-top:.6rem;">⚠️ Reason: ${data.reason}</div>` : ''}
+      </div>`;
+        }
+
+        document.getElementById('ver-submit-btn').addEventListener('click', async () => {
+            if (!verFile) return;
+            const btn = document.getElementById('ver-submit-btn');
+            btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Verifying…';
+
+            const form = new FormData();
+            form.append('file', verFile);
+
+            try {
+                const res = await fetch(`${API}/verify`, { method: 'POST', headers: headers(), body: form });
+                const data = await res.json();
+                btn.disabled = false; btn.innerHTML = '🔍 Verify Document';
+
+                const resultEl = document.getElementById('ver-result');
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = renderVerifyResult(data);
+                logActivity('Verify', verFile.name, data.status, data.latency_ms);
+            } catch {
+                btn.disabled = false; btn.innerHTML = '🔍 Verify Document';
+                alert('ver-alert', 'Backend unreachable.', 'error');
+            }
+        });
+
+        /* ══════════════════════════════════════════════════════════════
+           BATCH TAB
+        ══════════════════════════════════════════════════════════════ */
+        const batchRegBtn = document.getElementById('batch-reg-btn');
+        const batchVerBtn = document.getElementById('batch-ver-btn');
+
+        batchRegBtn.addEventListener('click', () => {
+            batchRegBtn.classList.add('active'); batchVerBtn.classList.remove('active');
+            document.getElementById('batch-reg-panel').style.display = '';
+            document.getElementById('batch-ver-panel').style.display = 'none';
+        });
+        batchVerBtn.addEventListener('click', () => {
+            batchVerBtn.classList.add('active'); batchRegBtn.classList.remove('active');
+            document.getElementById('batch-ver-panel').style.display = '';
+            document.getElementById('batch-reg-panel').style.display = 'none';
+        });
+
+        let bregFiles = [];
+        setupDropZone('breg-drop-zone', 'breg-file-input', files => {
+            bregFiles = Array.from(files);
+            renderBatchFileList('breg-filelist', bregFiles);
+            document.getElementById('breg-submit-btn').disabled = false;
+        });
+
+        let bverFiles = [];
+        setupDropZone('bver-drop-zone', 'bver-file-input', files => {
+            bverFiles = Array.from(files);
+            renderBatchFileList('bver-filelist', bverFiles);
+            document.getElementById('bver-submit-btn').disabled = false;
+        });
+
+        function renderBatchFileList(elId, files) {
+            const el = document.getElementById(elId);
+            if (!files.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+            el.style.display = '';
+            el.innerHTML = `<div class="card-flat"><p style="font-weight:600;margin-bottom:.6rem;">${files.length} file(s) selected:</p>
+      ${files.map((f, i) => `<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.82rem;">
+        <span>${i + 1}.</span><span style="flex:1;">${f.name}</span><span style="color:var(--gray-500);">${fmtSize(f.size)}</span></div>`).join('')}
+    </div>`;
+        }
+
+        document.getElementById('breg-submit-btn').addEventListener('click', async () => {
+            if (!bregFiles.length) return;
+            const btn = document.getElementById('breg-submit-btn');
+            btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> Registering ${bregFiles.length} files…`;
+
+            const form = new FormData();
+            bregFiles.forEach(f => form.append('files', f));
+            form.append('issuer_did', document.getElementById('breg-issuer').value);
+
+            try {
+                const res = await fetch(`${API}/upload/batch`, { method: 'POST', headers: headers(), body: form });
+                const data = await res.json();
+                btn.disabled = false; btn.innerHTML = '🔐 Register All';
+                if (!res.ok) { alert('breg-alert', data.detail || 'Batch failed', 'error'); return; }
+                renderBatchResults('breg-result', data.results);
+                logActivity('Batch Register', `${bregFiles.length} files`, data.results.filter(r => r.status === 'REGISTERED').length + ' registered', '–');
+            } catch {
+                btn.disabled = false; btn.innerHTML = '🔐 Register All';
+                alert('breg-alert', 'Backend unreachable.', 'error');
+            }
+        });
+
+        document.getElementById('bver-submit-btn').addEventListener('click', async () => {
+            if (!bverFiles.length) return;
+            const btn = document.getElementById('bver-submit-btn');
+            btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> Verifying ${bverFiles.length} files…`;
+
+            const form = new FormData();
+            bverFiles.forEach(f => form.append('files', f));
+
+            try {
+                const res = await fetch(`${API}/verify/batch`, { method: 'POST', headers: headers(), body: form });
+                const data = await res.json();
+                btn.disabled = false; btn.innerHTML = '🔍 Verify All';
+                if (!res.ok) { alert('bver-alert', data.detail || 'Batch verify failed', 'error'); return; }
+                renderBatchResults('bver-result', data.results);
+            } catch {
+                btn.disabled = false; btn.innerHTML = '🔍 Verify All';
+                alert('bver-alert', 'Backend unreachable.', 'error');
+            }
+        });
+
+        function renderBatchResults(elId, results) {
+            const el = document.getElementById(elId);
+            el.style.display = '';
+            el.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Status</th><th>Type</th><th>Block / Issuer</th><th>Latency</th><th>Note</th></tr></thead>
+          <tbody>${results.map(r => `<tr>
+            <td>${r.filename || r.file || '–'}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${fileIcon(r.file_type || '')} ${r.file_type || '–'}</td>
+            <td>${r.block_index != null ? '#' + r.block_index : r.issuer_name || '–'}</td>
+            <td>${r.latency_ms != null ? r.latency_ms + 'ms' : '–'}</td>
+            <td>${r.copy_detected ? `<span class="badge badge-copy">📋 Copy of ${r.copy_of_user}</span>` : r.reason || ''}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           LEDGER TAB
+        ══════════════════════════════════════════════════════════════ */
+        let ledgerRecs = [];
+
+        document.getElementById('ledger-load-btn').addEventListener('click', loadLedger);
+        document.getElementById('ledger-search').addEventListener('input', filterLedger);
+
+        async function loadLedger() {
+            const btn = document.getElementById('ledger-load-btn');
+            btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+            try {
+                const res = await fetch(`${API}/ledger/view`, { headers: headers() });
+                const data = await res.json();
+                btn.disabled = false; btn.innerHTML = '🔄 Load Records';
+                if (!res.ok) { alert('ledger-alert', data.detail || 'Failed to load ledger', 'error'); return; }
+                ledgerRecs = data.records || [];
+                renderLedgerTable(ledgerRecs);
+                alert('ledger-alert', '');
+            } catch {
+                btn.disabled = false; btn.innerHTML = '🔄 Load Records';
+                alert('ledger-alert', 'Backend unreachable.', 'error');
+            }
+        }
+
+        function filterLedger() {
+            const q = document.getElementById('ledger-search').value.toLowerCase();
+            if (!q) { renderLedgerTable(ledgerRecs); return; }
+            renderLedgerTable(ledgerRecs.filter(r =>
+                Object.values(r).some(v => String(v).toLowerCase().includes(q))
+            ));
+        }
+
+        function renderLedgerTable(recs) {
+            const tableEl = document.getElementById('ledger-table');
+            const emptyEl = document.getElementById('ledger-empty');
+            const countEl = document.getElementById('ledger-count');
+            const tbody = document.getElementById('ledger-tbody');
+
+            if (!recs.length) {
+                tableEl.style.display = 'none';
+                emptyEl.style.display = '';
+                return;
+            }
+            emptyEl.style.display = 'none';
+            tableEl.style.display = '';
+            countEl.textContent = `${recs.length} record(s)`;
+
+            tbody.innerHTML = recs.map(r => `<tr>
+      <td>${r.filename || '–'}</td>
+      <td>${fileIcon(r.file_type)} ${r.file_type || '–'}</td>
+      <td>${r.issuer_name || r.issuer_did || '–'}</td>
+      <td>${r.revoked ? '<span class="badge badge-revoked">🔒 Revoked</span>' : '<span class="badge badge-verified">✅ Active</span>'}</td>
+      <td><code style="font-size:.7rem;color:var(--blue-600);">${(r.hash || '').slice(0, 18)}…</code></td>
+      <td>${fmtTs(r.issued_at)}</td>
+      <td>${fmtSize(r.size_bytes)}</td>
+    </tr>`).join('');
+        }
+
+        // Danger zone
+        document.getElementById('confirm-clear').addEventListener('change', function () {
+            document.getElementById('clear-ledger-btn').disabled = !this.checked;
+        });
+        document.getElementById('clear-ledger-btn').addEventListener('click', async () => {
+            if (!confirm('Permanently delete all your ledger records? This cannot be undone.')) return;
+            const res = await fetch(`${API}/ledger/clear`, { method: 'DELETE', headers: headers() });
+            const data = await res.json();
+            if (res.ok) {
+                alert('ledger-alert', `✅ ${data.records_removed} records deleted.`, 'success');
+                ledgerRecs = [];
+                renderLedgerTable([]);
+                document.getElementById('confirm-clear').checked = false;
+                document.getElementById('clear-ledger-btn').disabled = true;
+            } else {
+                alert('ledger-alert', data.detail || 'Failed to clear ledger', 'error');
+            }
+        });
+
+        /* ══════════════════════════════════════════════════════════════
+           BLOCKCHAIN TAB
+        ══════════════════════════════════════════════════════════════ */
+        document.getElementById('chain-check-btn').addEventListener('click', async () => {
+            const el = document.getElementById('chain-status');
+            el.innerHTML = '<div class="alert alert-info"><span class="spinner"></span> Checking chain integrity…</div>';
+            try {
+                const res = await fetch(`${API}/blockchain/verify`);
+                const data = await res.json();
+                el.innerHTML = data.blockchain_valid
+                    ? '<div class="alert alert-success">✅ Blockchain integrity verified — all blocks are intact</div>'
+                    : '<div class="alert alert-error">❌ Blockchain compromised! Chain integrity check failed.</div>';
+            } catch {
+                el.innerHTML = '<div class="alert alert-error">Backend unreachable.</div>';
+            }
+        });
+
+        document.getElementById('chain-load-btn').addEventListener('click', async () => {
+            const blocksEl = document.getElementById('chain-blocks');
+            const statsEl = document.getElementById('chain-stats');
+            blocksEl.innerHTML = '<div class="alert alert-info"><span class="spinner"></span> Loading blocks…</div>';
+            try {
+                const res = await fetch(`${API}/blockchain/blocks`);
+                const data = await res.json();
+                const chain = data.chain || [];
+
+                statsEl.style.display = '';
+                statsEl.innerHTML = `
+        <div class="metric-card"><div class="metric-value">${chain.length}</div><div class="metric-label">Total Blocks</div></div>
+        <div class="metric-card"><div class="metric-value">${chain.length > 0 ? chain[chain.length - 1].index : '–'}</div><div class="metric-label">Latest Block</div></div>
+      `;
+
+                if (!chain.length) { blocksEl.innerHTML = '<p class="text-muted">No blocks yet.</p>'; return; }
+                blocksEl.innerHTML = chain.slice().reverse().map(b => `
+        <div class="block-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">
+            <span class="block-index">Block #${b.index}</span>
+            <span style="font-size:.72rem;color:var(--gray-500);">${fmtTs(b.timestamp)}</span>
+          </div>
+          <div class="block-hash">Hash: ${b.block_hash}</div>
+          <div class="block-hash" style="color:var(--blue-400);">Prev: ${b.previous_hash}</div>
+          <div style="margin-top:.4rem;font-size:.78rem;color:var(--gray-600);">Issuer: ${b.issuer_did || '–'}</div>
+        </div>`).join('');
+            } catch {
+                blocksEl.innerHTML = '<div class="alert alert-error">Backend unreachable.</div>';
+            }
+        });
+
+        /* ══════════════════════════════════════════════════════════════
+           ANALYTICS TAB
+        ══════════════════════════════════════════════════════════════ */
+        function renderAnalytics() {
+            const regs = activityLog.filter(a => a.op === 'Register').length;
+            const vers = activityLog.filter(a => a.op === 'Verify').length;
+            const latencies = activityLog.filter(a => typeof a.latency === 'number').map(a => a.latency);
+            const avgLat = latencies.length ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(1) : '–';
+
+            document.getElementById('analytics-metrics').innerHTML = `
+      <div class="metric-card"><div class="metric-value">${regs}</div><div class="metric-label">Registrations</div></div>
+      <div class="metric-card"><div class="metric-value">${vers}</div><div class="metric-label">Verifications</div></div>
+      <div class="metric-card"><div class="metric-value">${activityLog.length}</div><div class="metric-label">Total Operations</div></div>
+      <div class="metric-card"><div class="metric-value">${avgLat}ms</div><div class="metric-label">Avg Latency</div></div>
+    `;
+
+            if (!activityLog.length) {
+                document.getElementById('activity-log-empty').style.display = '';
+                document.getElementById('activity-table').style.display = 'none';
+                return;
+            }
+            document.getElementById('activity-log-empty').style.display = 'none';
+            document.getElementById('activity-table').style.display = '';
+            document.getElementById('activity-tbody').innerHTML = activityLog.map(a => `<tr>
+      <td>${a.time}</td>
+      <td><span class="badge badge-blue">${a.op}</span></td>
+      <td>${a.file}</td>
+      <td>${statusBadge(String(a.result))}</td>
+      <td>${typeof a.latency === 'number' ? a.latency + 'ms' : '–'}</td>
+    </tr>`).join('');
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           ANOMALY TAB
+        ══════════════════════════════════════════════════════════════ */
+        document.getElementById('anomaly-check-btn').addEventListener('click', async () => {
+            const el = document.getElementById('anomaly-result');
+            el.innerHTML = '<div class="alert alert-info"><span class="spinner"></span> Running anomaly detection…</div>';
+            try {
+                const res = await fetch(`${API}/anomaly/check`);
+                const data = await res.json();
+                const isAnomaly = data.is_anomaly === true || data.anomaly_detected === true;
+                el.innerHTML = `
+        <div class="card" style="border-left:4px solid ${isAnomaly ? 'var(--danger)' : 'var(--success)'};">
+          <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+            <span style="font-size:2rem;">${isAnomaly ? '⚠️' : '✅'}</span>
+            <div>
+              <div style="font-weight:700;font-size:1.05rem;">${isAnomaly ? 'Anomaly Detected!' : 'No Anomaly Detected'}</div>
+              <div style="font-size:.85rem;color:var(--gray-500);">${isAnomaly ? 'Suspicious activity detected in recent events.' : 'All recent events appear normal.'}</div>
+            </div>
+          </div>
+          <pre style="background:var(--gray-900);color:#a5f3fc;border-radius:8px;padding:1rem;font-size:.75rem;overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>
+        </div>`;
+            } catch {
+                el.innerHTML = '<div class="alert alert-error">Backend unreachable.</div>';
+            }
+        });
+
+        document.getElementById('agent-respond-btn').addEventListener('click', async () => {
+            if (!confirm('This will run the autonomous agent which may revoke credentials. Continue?')) return;
+            const el = document.getElementById('anomaly-result');
+            el.innerHTML = '<div class="alert alert-warning"><span class="spinner"></span> Running autonomous response agent…</div>';
+            try {
+                const res = await fetch(`${API}/agent/respond`, { method: 'POST' });
+                const data = await res.json();
+                el.innerHTML = `
+        <div class="alert alert-warning">🤖 Autonomous agent executed.
+          <pre style="margin-top:.6rem;background:rgba(0,0,0,.1);border-radius:6px;padding:.6rem;font-size:.72rem;overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>
+        </div>`;
+            } catch {
+                el.innerHTML = '<div class="alert alert-error">Backend unreachable.</div>';
+            }
+        });
+
+    </script>
+</body>
+
+</html>

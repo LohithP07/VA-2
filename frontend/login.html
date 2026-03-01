@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In – Veracity Agent</title>
+    <meta name="description" content="Sign in to your Veracity Agent account to access your private document ledger." />
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+    <link rel="stylesheet" href="src/style.css" />
+</head>
+
+<body>
+    <div class="auth-page">
+
+        <!-- Left panel (visible on wide screens) -->
+        <div class="auth-left">
+            <div style="max-width:440px;color:white;">
+                <div style="font-size:3rem;margin-bottom:1.5rem;">🛡️</div>
+                <h2 style="color:white;margin-bottom:1rem;">Welcome back to<br>Veracity Agent</h2>
+                <p style="color:rgba(255,255,255,.6);font-size:1rem;line-height:1.8;margin-bottom:2rem;">
+                    Your private document ledger is waiting. Every file you've registered is cryptographically secured
+                    and blockchain-anchored.
+                </p>
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div style="display:flex;align-items:center;gap:.8rem;color:rgba(255,255,255,.75);font-size:.9rem;">
+                        <div
+                            style="width:36px;height:36px;background:rgba(59,130,246,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                            🔐</div>
+                        Your documents are private and isolated to your account
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.8rem;color:rgba(255,255,255,.75);font-size:.9rem;">
+                        <div
+                            style="width:36px;height:36px;background:rgba(59,130,246,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                            ⛓️</div>
+                        Blockchain records persist across sessions
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.8rem;color:rgba(255,255,255,.75);font-size:.9rem;">
+                        <div
+                            style="width:36px;height:36px;background:rgba(59,130,246,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                            🤖</div>
+                        AI anomaly monitoring is always active
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right panel: login form -->
+        <div class="auth-right">
+            <div class="auth-box fade-up">
+                <div class="auth-logo">
+                    <span class="logo">🛡️</span>
+                    <span class="name">Veracity Agent</span>
+                </div>
+                <h2>Sign in</h2>
+                <p class="auth-sub">Enter your username and password</p>
+
+                <div id="alert-box"></div>
+
+                <form id="login-form" novalidate>
+                    <div class="input-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="your_username"
+                            autocomplete="username" required />
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <div style="position:relative;">
+                            <input type="password" id="password" name="password" placeholder="••••••••"
+                                autocomplete="current-password" required style="width:100%;padding-right:3rem;" />
+                            <button type="button" id="toggle-pw"
+                                style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--gray-400);">👁</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full" id="submit-btn" style="margin-top:.5rem;">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="auth-divider">or</div>
+                <p style="text-align:center;font-size:.88rem;color:var(--gray-600);">
+                    Don't have an account? <a href="register.html" class="auth-link">Create one →</a>
+                </p>
+                <p style="text-align:center;margin-top:.6rem;">
+                    <a href="index.html" style="font-size:.82rem;color:var(--gray-400);">← Back to home</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const API = 'http://127.0.0.1:8000';
+
+        function showAlert(msg, type = 'error') {
+            const box = document.getElementById('alert-box');
+            const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            box.innerHTML = `<div class="alert alert-${type}">${icon} ${msg}</div>`;
+        }
+
+        // Toggle password visibility
+        document.getElementById('toggle-pw').addEventListener('click', () => {
+            const pw = document.getElementById('password');
+            pw.type = pw.type === 'password' ? 'text' : 'password';
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) { showAlert('Please fill in all fields.'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Signing in…';
+
+            try {
+                const form = new FormData();
+                form.append('username', username);
+                form.append('password', password);
+
+                const res = await fetch(`${API}/auth/login`, { method: 'POST', body: form });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showAlert(data.detail || 'Login failed. Check your credentials.');
+                    btn.disabled = false; btn.innerHTML = 'Sign In';
+                    return;
+                }
+
+                // Store token and user info
+                localStorage.setItem('va_token', data.access_token);
+                localStorage.setItem('va_user', JSON.stringify({ username: data.username, email: data.email }));
+
+                showAlert('Login successful! Redirecting…', 'success');
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+            } catch (err) {
+                showAlert('Cannot reach the backend server. Make sure it is running on port 8000.');
+                btn.disabled = false; btn.innerHTML = 'Sign In';
+            }
+        });
+
+        // Redirect if already logged in
+        if (localStorage.getItem('va_token')) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+
+</html>
